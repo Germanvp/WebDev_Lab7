@@ -1,7 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const {Bookmarks} = require('./model/bookmarkModel');
+const mongoose = require('mongoose');
 const uuid = require('uuid');
+
 
 const app = express()
 const jsonParser = bodyParser.json();
@@ -10,45 +13,6 @@ const TOKEN = "2abbf7c3-245b-404f-9473-ade729ed4653";
 
 app.use( morgan('dev'));
 app.use(jsonParser)
-
-/*
-const bookmark = {
-    id: uuid.v4(),
-    title: string,
-    description: string,
-
-    url: string,
-    rating: number
-}
-*/
-
-const list_bookmarks = [
-    {
-        id: uuid.v4(),
-        title: "Game of Thrones",
-        description: "la regaron al final :(",
-    
-        url: "www.got.com",
-        rating: 4.5
-    },
-    {
-        id: uuid.v4(),
-        title: "Westworld",
-        description: "Season 1 es la mejor, las demas intentaron hacerla muy edgy",
-    
-        url: "www.ww.com",
-        rating: 4
-    },
-    {
-        id: uuid.v4(),
-        title: "Attack on Titan",
-        description: "10/10",
-    
-        url: "www.aot.com",
-        rating: 5
-    }
-]
-
 
 function validateToken(req, res, next) {
     let token = req.headers.authorization;
@@ -78,15 +42,21 @@ function validateToken(req, res, next) {
 
 app.get('/bookmarks', validateToken, (req, res) => {
     console.log("Get all bookmarks");
-
-    return res.status(200).json(list_bookmarks).end();
+    
+    Bookmarks.getAllBookmarks()
+    .then( bookmarks => {
+        return res.status(200).json(bookmarks).end();
+    })
+    .catch( err => {
+        return res.status(500).json(err).end();
+    });
 })
 
 app.post('/bookmarks', validateToken, (req, res) => {
     console.log(req.body);
     let title = req.body.bookmark.title;
     let description = req.body.bookmark.description;
-    let url = req.body.bookmark.description;
+    let url = req.body.bookmark.url;
     let rating = req.body.bookmark.rating;
 
     if (!(title & description & url & rating)) {
@@ -103,9 +73,14 @@ app.post('/bookmarks', validateToken, (req, res) => {
         rating: rating
     }
 
-    list_bookmarks.push(new_bookmark);
+    Bookmarks.createBookmark(new_bookmark)
+    .then( response => {
+        return res.status(201).json(new_bookmark).end();
+    })
+    .catch( err => {
+        return res.status(500).json(err).end();
+    })
 
-    return res.status(201).json(new_bookmark).end();
 })
 
 
@@ -118,29 +93,34 @@ app.get('/bookmark', validateToken, (req, res) => {
         return res.status(406).end();
     }
 
-    let index = list_bookmarks.findIndex(e => e.title == title)
-
-    if (index >= 0) {
-        return res.status(200).json(list_bookmarks[index]).end();
-    } else {
-        res.statusMessage = "El titulo que quieres no existe."
-        return res.status(404).end();
-    }
+    Bookmarks.getByTitle(title)
+    .then(response => {
+        if (response == null) {
+            res.statusMessage = "El titulo que quieres no existe."
+            return res.status(404).end();
+        }
+        return res.status(200).json(response).end();
+    })
+    .catch(err => {
+        return res.status(500).end();
+    })
 
 })
 
 app.delete('/bookmark/:id', validateToken, (req, res) => {
     let id = req.params.id
 
-    let index = list_bookmarks.findIndex(e => e.id == id)
-
-    if (index >= 0) {
-        list_bookmarks.splice(index, 1);
+    Bookmarks.deleteById(id)
+    .then(response => {
+        if (response == null) {
+            res.statusMessage = "El id que quieres borrar no existe."
+            return res.status(404).end();
+        }
         return res.status(200).end();
-    } else {
-        res.statusMessage = "El id que quieres borrar no existe."
-        return res.status(404).end();
-    }
+    })
+    .catch(err => {
+        return res.status(500).end();
+    })
 })
 
 app.patch('/bookmark/:id', validateToken, (req, res) => {
@@ -149,7 +129,7 @@ app.patch('/bookmark/:id', validateToken, (req, res) => {
 
     let title = req.body.bookmark.title;
     let description = req.body.bookmark.description;
-    let url = req.body.bookmark.description;
+    let url = req.body.bookmark.url;
     let rating = req.body.bookmark.rating;
 
     if (!body_id) {
@@ -160,29 +140,54 @@ app.patch('/bookmark/:id', validateToken, (req, res) => {
         return res.status(409).end();
     }
 
-    let index = list_bookmarks.findIndex(e => e.id == param_id)
-
-    if (index >= 0) {
-        if (title) {
-            list_bookmarks[index].title = title;
-        }         
-        
-        if (description) {
-            list_bookmarks[index].description = description;
-        }
-
-        if (url) {
-            list_bookmarks[index].url = url;
-        }
-        if (rating) {
-            list_bookmarks[index].rating = rating;
-        }
-
-        return res.status(202).json(list_bookmarks[index]);
-    } else {
-        res.statusMessage = "El id que quieres no existe."
-        return res.status(404).end();
+    var newAtts = {}
+    
+    if (title) {
+        newAtts.title = title;
+    }         
+    
+    if (description) {
+        newAtts.description = description;
     }
+
+    if (url) {
+        newAtts.url = url;
+    }
+    if (rating) {
+        newAtts.rating = rating;
+    }
+
+    Bookmarks.updateById(param_id, newAtts)
+    .then(response => {
+        if (response == null) {
+            res.statusMessage = "El id que quieres no existe."
+            return res.status(404).end();
+        }
+        return res.status(200).json(response).end();
+    })
+    .catch(err => {
+        return res.status(500).end();
+    })
 })
 
-app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`))
+app.listen(port, () => {
+    new Promise((resolve, reject) => {
+        const settings = {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            useCreateIndex: true,
+        }
+
+        mongoose.connect('mongodb://localhost/bookmarksdb', settings, (err) => {
+            if (err) {
+                return reject(err);
+            } 
+
+            console.log("Connected");
+            return resolve();
+        })
+    })
+    .catch( err => {
+        console.log(err);
+    })
+})
