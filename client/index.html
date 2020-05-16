@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="index.css">
+
+<body>
+
+
+<div>
+    <h2>a) List of bookmarks</h2>
+    <table class = "bookmarks-list" style="width:100%">
+    <tr>
+        <th>Id</th>
+        <th>Title</th>
+        <th>Rating</th>
+        <th>Description</th>
+        <th>Url</th>
+    </tr>
+    </table>
+</div>
+
+<div>
+    <h2>b) Post bookmark</h2>
+    <form class ="postForm">
+        <label for="postTitle">Title:</label><br>
+        <input type="text" id="postTitle" value="Westworld"><br><br>
+
+        <label for="postRating">Rating:</label><br>
+        <input type="text" id="postRating" value="10"><br><br>
+
+        <label for="postDescription">Description:</label><br>
+        <input type="text" id="postDescription" value="Nice"><br><br>
+
+        <label for="postUrl">Url:</label><br>
+        <input type="text" id="postUrl" value="www.westworld.com"><br><br>
+
+        <input type="submit" value="Submit">
+    </form>
+</div>
+
+<div>
+    <h2>c) Delete bookmark</h2>
+    <form class ="deleteForm">
+        <label for="deleteId">Id:</label><br>
+        <input type="text" id="deleteId" value="id"><br><br>
+
+        <input type="submit" value="Submit">
+    </form>
+</div>
+
+<div>
+    <h2>d) Update bookmark</h2>
+    <form class ="updateForm">
+        <label for="updateId">Id:</label><br>
+        <input type="text" id="updateId" value="id"><br><br>
+        
+        <label for="updateTitle">Title:</label><br>
+        <input type="text" id="updateTitle" value="Westworld"><br><br>
+
+        <label for="updateRating">Rating:</label><br>
+        <input type="text" id="updateRating" value="10"><br><br>
+
+        <label for="updateDescription">Description:</label><br>
+        <input type="text" id="updateDescription" value="Nice"><br><br>
+
+        <label for="updateUrl">Url:</label><br>
+        <input type="text" id="updateUrl" value="www.westworld.com"><br><br>
+
+        <input type="submit" value="Submit">
+    </form>
+</div>
+
+<div>
+    <h2>e) Get bookmark by title</h2>
+    <form class ="getTitleForm">
+        <label for="getTitleTitle">Title:</label><br>
+        <input type="text" id="getTitleTitle" value="Title"><br><br>
+
+        <input type="submit" value="Submit">
+    </form>
+    <table class = "bookmarks-title-list" style="width:100%">
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Rating</th>
+            <th>Description</th>
+            <th>Url</th>
+        </tr>
+    </table>
+</div>
+
+</body>
+<script src="index.js"></script>
+</html>

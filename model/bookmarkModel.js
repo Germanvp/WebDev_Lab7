@@ -2,12 +2,26 @@ const mongoose = require('mongoose');
 
 
 const bookmarkSchema = mongoose.Schema({
-    id: String,
-    title: String,
-    description: String,
-
-    url: String,
-    rating: Number
+    id: {
+        type: String,
+        required: true
+    },
+    title: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
+        required : true
+    },
+    url:{
+        type: String,
+        required : true
+    },
+    rating: {
+        type: Number,
+        required : true
+    },
 });
 
 const bookmarksCollection = mongoose.model('bookmarks', bookmarkSchema);
@@ -20,6 +34,7 @@ const Bookmarks = {
             return response;
         })
         .catch( err => {
+            print("AAAAA")
             return err;
         })
     },

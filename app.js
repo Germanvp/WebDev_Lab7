@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const {Bookmarks} = require('./model/bookmarkModel');
 const mongoose = require('mongoose');
 const uuid = require('uuid');
-
+const {DATABASE_URL} = require("./config")
 
 const app = express()
 const jsonParser = bodyParser.json();
@@ -40,6 +40,18 @@ function validateToken(req, res, next) {
 
 }
 
+function cors(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE");
+    if (req.method === "OPTIONS") {
+      return res.send(204);
+    }
+    next();
+}
+
+app.use(cors);
+
 app.get('/bookmarks', validateToken, (req, res) => {
     console.log("Get all bookmarks");
     
@@ -54,14 +66,14 @@ app.get('/bookmarks', validateToken, (req, res) => {
 
 app.post('/bookmarks', validateToken, (req, res) => {
     console.log(req.body);
-    let title = req.body.bookmark.title;
-    let description = req.body.bookmark.description;
-    let url = req.body.bookmark.url;
-    let rating = req.body.bookmark.rating;
+    let title = req.body.title;
+    let description = req.body.description;
+    let url = req.body.url;
+    let rating = req.body.rating;
 
-    if (!(title & description & url & rating)) {
+    if (!title || !description || !url || !rating) {
         res.statusMessage = "Parameter is missing."
-        res.status(406)
+        return res.status(406).end()
     }
 
     let new_bookmark = {
@@ -75,6 +87,7 @@ app.post('/bookmarks', validateToken, (req, res) => {
 
     Bookmarks.createBookmark(new_bookmark)
     .then( response => {
+        console.log(response)
         return res.status(201).json(new_bookmark).end();
     })
     .catch( err => {
@@ -127,6 +140,7 @@ app.patch('/bookmark/:id', validateToken, (req, res) => {
     let param_id = req.params.id;
     let body_id = req.body.id;
 
+    console.log(param_id, body_id)
     let title = req.body.bookmark.title;
     let description = req.body.bookmark.description;
     let url = req.body.bookmark.url;
@@ -159,7 +173,7 @@ app.patch('/bookmark/:id', validateToken, (req, res) => {
 
     Bookmarks.updateById(param_id, newAtts)
     .then(response => {
-        if (response == null) {
+        if (response == null || response.n == 0) {
             res.statusMessage = "El id que quieres no existe."
             return res.status(404).end();
         }
@@ -178,7 +192,7 @@ app.listen(port, () => {
             useCreateIndex: true,
         }
 
-        mongoose.connect('mongodb://localhost/bookmarksdb', settings, (err) => {
+        mongoose.connect(DATABASE_URL, settings, (err) => {
             if (err) {
                 return reject(err);
             } 
