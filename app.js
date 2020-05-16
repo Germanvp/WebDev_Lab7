@@ -10,6 +10,7 @@ const app = express()
 const jsonParser = bodyParser.json();
 
 app.use( morgan('dev'));
+app.use(express.static('client'));
 app.use(jsonParser)
 
 function validateToken(req, res, next) {
