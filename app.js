@@ -4,12 +4,10 @@ const morgan = require('morgan');
 const {Bookmarks} = require('./model/bookmarkModel');
 const mongoose = require('mongoose');
 const uuid = require('uuid');
-const {DATABASE_URL} = require("./config")
+const {DATABASE_URL, TOKEN, PORT} = require("./config")
 
 const app = express()
 const jsonParser = bodyParser.json();
-const port = 3000
-const TOKEN = "2abbf7c3-245b-404f-9473-ade729ed4653";
 
 app.use( morgan('dev'));
 app.use(jsonParser)
@@ -184,7 +182,7 @@ app.patch('/bookmark/:id', validateToken, (req, res) => {
     })
 })
 
-app.listen(port, () => {
+app.listen(PORT, () => {
     new Promise((resolve, reject) => {
         const settings = {
             useNewUrlParser: true,
